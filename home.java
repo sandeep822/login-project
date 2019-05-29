@@ -1,0 +1,194 @@
+package com.example.ex3;
+import android.content.Context;
+import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.Toast;
+
+import java.sql.RowId;
+
+public class Home extends AppCompatActivity {
+
+    Button badd, bdel, bsearch, bfirst, bprevious, bnext, blast, bupdate;
+    EditText etextdate, etextnote,etextsearch, etextupdate;
+    SQLiteDatabase db;
+
+
+
+    Cursor c;
+    String strdate, strnote,strdate1, strnote1;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_home);
+
+
+        badd = (Button) findViewById(R.id.buttonadd);
+        bdel = (Button) findViewById(R.id.buttondelete);
+        bsearch = (Button) findViewById(R.id.buttonsearch);
+        bupdate = (Button) findViewById(R.id.buttonupdate);
+
+        bfirst = (Button) findViewById(R.id.buttonfirst);
+        bprevious = (Button) findViewById(R.id.buttonprevious);
+        bnext = (Button) findViewById(R.id.buttonnext);
+        blast = (Button) findViewById(R.id.buttonlast);
+
+        etextdate = (EditText) findViewById(R.id.etdate);
+        etextnote = (EditText) findViewById(R.id.etnote);
+        etextsearch=(EditText)findViewById(R.id.editText);
+        etextupdate=(EditText)findViewById(R.id.editText2);
+
+        try {
+            db = openOrCreateDatabase("todolistdb", Context.MODE_PRIVATE, null);
+            db.execSQL("CREATE TABLE IF NOT EXISTS todolist(datedata VARCHAR,note VARCHAR);");
+            c = db.rawQuery("SELECT * FROM todolist", null);
+
+        } catch (Exception e) {
+            Toast.makeText(getBaseContext(), "Error:" + e.getMessage().toString(), Toast.LENGTH_LONG).show();
+        }
+
+        badd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    db.execSQL("INSERT INTO todolist VALUES('" + etextdate.getText().toString() + "','" + etextnote
+                            .getText().toString() + "');");
+                    Toast.makeText(getBaseContext(), "ADD Button Clicked", Toast.LENGTH_LONG).show();
+                } catch (Exception e) {
+                    Toast.makeText(getBaseContext(), "" + e, Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+
+        bdel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                db.execSQL("DROP TABLE IF  EXISTS todolist ");
+                Toast.makeText(getBaseContext(), "Database Deleted", Toast.LENGTH_LONG).show();
+            }
+        });
+
+        bsearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                try{
+                    //Toast.makeText(getBaseContext(), "Searching Record!", Toast.LENGTH_LONG).show();
+                    c = db.rawQuery("SELECT * FROM todolist WHERE datedata LIKE '%"+ etextsearch.getText().toString()+"%'", null);
+                    if(c.moveToFirst()) {
+
+                        strdate = c.getString(0);
+                        strnote = c.getString(1);
+                        etextdate.setText(strdate);
+                        etextnote.setText(strnote);
+
+                        Toast.makeText(getBaseContext(), "Record Found!", Toast.LENGTH_LONG).show();
+
+
+                    }
+                    else
+                    {
+                        Toast.makeText(getBaseContext(), "Record Not Found!", Toast.LENGTH_LONG).show();
+                    }
+
+                }catch(Exception e){
+                    Toast.makeText(getBaseContext(), "error"+e, Toast.LENGTH_LONG).show();
+
+                }
+
+
+
+
+            }
+        });
+        bupdate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    c = db.rawQuery("SELECT * FROM todolist WHERE datedata LIKE '%" + etextupdate.getText().toString() + "%'", null);
+                    if (c.moveToFirst()) {
+                        db.execSQL("UPDATE todolist  SET datedata ='" + etextdate.getText() + "', note='" + etextnote.getText() + "' WHERE datedata ='" + etextupdate.getText() + "'");
+
+                        Toast.makeText(getBaseContext(), "Record is UPDATED ", Toast.LENGTH_LONG).show();
+                    }
+                }catch(Exception e)
+                {
+                    Toast.makeText(getBaseContext(), "Record is not found to update ", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+
+        bfirst.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                c.moveToFirst();
+                strdate = c.getString(0);
+                strnote = c.getString(1);
+                etextdate.setText(strdate);
+                etextnote.setText(strnote);
+
+                Toast.makeText(getBaseContext(), "Moved to first record successfuly!", Toast.LENGTH_LONG).show();
+            }
+        });
+
+        bprevious.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                try{
+                    c.moveToPrevious();
+                    strdate = c.getString(0);
+                    strnote = c.getString(1);
+                    etextdate.setText(strdate);
+                    etextnote.setText(strnote);
+
+                    Toast.makeText(getBaseContext(), "Moved to previous record successfuly!", Toast.LENGTH_LONG).show();
+                }catch(Exception e){
+                    Toast.makeText(getBaseContext(), "No more previous Records!", Toast.LENGTH_LONG).show();
+                }
+
+
+            }
+        });
+        bnext.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                try{
+                    c.moveToNext();
+                    strdate = c.getString(0);
+                    strnote = c.getString(1);
+                    etextdate.setText(strdate);
+                    etextnote.setText(strnote);
+
+                    Toast.makeText(getBaseContext(), "Moved to next record successfuly!", Toast.LENGTH_LONG).show();
+                }catch(Exception e){
+                    Toast.makeText(getBaseContext(), "No more Next Records!", Toast.LENGTH_LONG).show();
+                }
+
+
+            }
+        });
+        blast.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                c.moveToLast();
+                strdate = c.getString(0);
+                strnote = c.getString(1);
+                etextdate.setText(strdate);
+                etextnote.setText(strnote);
+
+                Toast.makeText(getBaseContext(), "Moved to last record successfuly!", Toast.LENGTH_LONG).show();
+            }
+        });
+
+    }
+}
